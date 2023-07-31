@@ -1,16 +1,28 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import time
 import sys
+import random
+import requests
+import urllib.request
 
-from rgbmatrix import RGBMatrix, RGBMatrixOptions
+from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
 from PIL import Image
 
 
-if len(sys.argv) < 2:
-    sys.exit("Require a gif argument")
-else:
-    image_file = sys.argv[1]
-
+def get_pokemon():
+    random_pokemon = random.randint(1, 898)  # There are 898 Pokémon in total
+    url = f"https://pokeapi.co/api/v2/pokemon/{random_pokemon}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        pokemon_name = data["name"].capitalize()
+        image_url = f"https://github.com/PokeAPI/sprites/tree/master/sprites/pokemon/other/showdown/1.gif"
+        image_filename = f'./showdown/{random_pokemon}.gif'
+        return image_filename
+    else:
+        print(f"Failed to fetch Pokémon data. Status code: {response.status_code}")
+        return None
+image_file = get_pokemon()
 gif = Image.open(image_file)
 
 try:
@@ -21,8 +33,8 @@ except Exception:
 
 # Configuration for the matrix
 options = RGBMatrixOptions()
-options.rows = 32
-options.cols = 32
+options.rows = 64
+options.cols = 128
 options.chain_length = 1
 options.parallel = 1
 options.hardware_mapping = 'regular'  # If you have an Adafruit HAT: 'adafruit-hat'
@@ -51,7 +63,7 @@ try:
     # Infinitely loop through the gif
     cur_frame = 0
     while(True):
-        matrix.SwapOnVSync(canvases[cur_frame], framerate_fraction=10)
+        matrix.SwapOnVSync(canvases[cur_frame])
         if cur_frame == num_frames - 1:
             cur_frame = 0
         else:
