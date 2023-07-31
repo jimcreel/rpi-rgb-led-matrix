@@ -42,9 +42,9 @@ def draw_pokemon(image_file, matrix, pokemon_name):
     # Calculate the starting x-coordinate to right-justify the text
     text_width = len(pokemon_name) * 7  # 7 pixels wide per character (7x13 font
     starting_x = matrix.width - text_width - 5
-
+    starting_y = 28
     # Draw the right-justified Pokémon name
-    graphics.DrawText(offscreen_canvas, font, starting_x, 10, textColor, pokemon_name)
+    graphics.DrawText(offscreen_canvas, font, starting_x, 14, textColor, pokemon_name)
 
     offscreen_canvas = matrix.SwapOnVSync(offscreen_canvas)
 
@@ -58,7 +58,7 @@ try:
     options.parallel = 1
     options.hardware_mapping = 'regular'  # If you have an Adafruit HAT: 'adafruit-hat'
     options.led_rgb_sequence = 'RBG'
-
+    options.brightness = 30
     matrix = RGBMatrix(options=options)
 
     while True:
