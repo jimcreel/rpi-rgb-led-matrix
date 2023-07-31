@@ -58,6 +58,7 @@ try:
     options.parallel = 1
     options.hardware_mapping = 'regular'  # If you have an Adafruit HAT: 'adafruit-hat'
     options.led_rgb_sequence = 'RBG'
+    options.brightness = 30
 
     matrix = RGBMatrix(options=options)
 
