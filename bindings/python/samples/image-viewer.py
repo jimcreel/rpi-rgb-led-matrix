@@ -4,7 +4,6 @@ import sys
 import urllib.request
 import random
 import requests
-import 
 
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image
@@ -58,6 +57,7 @@ try:
     options.chain_length = 1
     options.parallel = 1
     options.hardware_mapping = 'regular'  # If you have an Adafruit HAT: 'adafruit-hat'
+    options.led_rgb_sequence = 'RBG'
 
     matrix = RGBMatrix(options=options)
 
