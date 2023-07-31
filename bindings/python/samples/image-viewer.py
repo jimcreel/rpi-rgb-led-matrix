@@ -4,6 +4,7 @@ import sys
 import urllib.request
 import random
 import requests
+import 
 
 from RGBMatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image
@@ -52,7 +53,7 @@ try:
     print("Press CTRL-C to stop.")
 
     options = RGBMatrixOptions()
-    options.rows = 64
+    options.rows = 32
     options.cols = 128
     options.chain_length = 1
     options.parallel = 1
