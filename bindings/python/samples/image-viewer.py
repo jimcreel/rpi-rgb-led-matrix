@@ -6,7 +6,7 @@ import random
 import requests
 import 
 
-from RGBMatrix import RGBMatrix, RGBMatrixOptions, graphics
+from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image
 
 def get_pokemon():
