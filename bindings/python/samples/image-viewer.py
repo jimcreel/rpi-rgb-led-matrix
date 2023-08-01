@@ -15,6 +15,11 @@ def get_pokemon():
     if response.status_code == 200:
         data = response.json()
         pokemon_name = data["name"].capitalize()
+        shiny_chance = random.randint(1, 100)
+        female_chance = random.randint(1, 100)
+        
+
+        
         image_url = data["sprites"]["front_default"]
         image_filename = "pokemon.png"
         urllib.request.urlretrieve(image_url, image_filename)
@@ -63,6 +68,7 @@ try:
 
     while True:
         result = get_pokemon()
+        
         if result is not None:
             image_file, pokemon_name = result
             draw_pokemon(image_file, matrix, pokemon_name)

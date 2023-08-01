@@ -16,8 +16,14 @@ def get_pokemon():
     if response.status_code == 200:
         data = response.json()
         pokemon_name = data["name"].capitalize()
-        image_url = f"https://github.com/PokeAPI/sprites/tree/master/sprites/pokemon/other/showdown/1.gif"
-        image_filename = f'./showdown/{random_pokemon}.gif'
+        shiny_chance = random.randint(1, 100)  # Shiny Pokémon have a 1 in 4096 chance of appearing
+        female_chance = random.randint(1,100)
+        if female_chance >=50:
+            if shiny_chance <=25: 
+                with open("file_lists.json") as json_file:
+                    file_lists_by_directory = json.load(json_file)
+        
+
         return image_filename
     else:
         print(f"Failed to fetch Pokémon data. Status code: {response.status_code}")
@@ -33,8 +39,8 @@ except Exception:
 
 # Configuration for the matrix
 options = RGBMatrixOptions()
-options.rows = 64
-options.cols = 128
+options.rows = 32
+options.cols = 64
 options.chain_length = 1
 options.parallel = 1
 options.hardware_mapping = 'regular'  # If you have an Adafruit HAT: 'adafruit-hat'
