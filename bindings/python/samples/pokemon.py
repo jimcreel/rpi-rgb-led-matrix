@@ -5,36 +5,48 @@ import random
 import requests
 import urllib.request
 
-from rgbmatrix import RGBMatrix, RGBMatrixOptions
+from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
 from PIL import Image
 
 
+
+import random
+import requests
+from PIL import Image
+import os
+
 def get_pokemon():
-    random_pokemon = random.randint(1, 898)  # There are 898 Pokémon in total
+    random_pokemon = random.randint(1, 898)
     url = f"https://pokeapi.co/api/v2/pokemon/{random_pokemon}"
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
         pokemon_name = data["name"].capitalize()
-        shiny_chance = random.randint(1, 100)  # Shiny Pokémon have a 1 in 4096 chance of appearing
-        female_chance = random.randint(1,100)
-        if female_chance >=50:
-            if shiny_chance <=25: 
-                with open("file_lists.json") as json_file:
-                    file_lists_by_directory = json.load(json_file)
-        
-
-        return image_filename
+        shiny_chance = random.randint(1, 100)
+        female_chance = random.randint(1, 100)
+        path = './showdown'
+        if shiny_chance <= 25 and female_chance >= 50:
+            path += '/shiny/female/'
+        elif shiny_chance <= 25:
+            path += '/shiny/'
+        elif female_chance >= 50:
+            path += '/female/'
+        else:
+            path += '/'
+        path += f'{random_pokemon}.gif'
+        print(path)
+        if os.path.exists(path):
+            print(path)
+            image = Image.open(path)
+            if image is not None:
+                return image
+        else:
+            print(f"Failed to fetch Pokémon data. Status code: {response.status_code}")
+            get_pokemon()
     else:
         print(f"Failed to fetch Pokémon data. Status code: {response.status_code}")
         return None
-image_file = get_pokemon()
-gif = Image.open(image_file)
 
-try:
-    num_frames = gif.n_frames
-except Exception:
-    sys.exit("provided image is not a gif")
 
 
 # Configuration for the matrix
@@ -47,32 +59,38 @@ options.hardware_mapping = 'regular'  # If you have an Adafruit HAT: 'adafruit-h
 
 matrix = RGBMatrix(options = options)
 
-# Preprocess the gifs frames into canvases to improve playback performance
-canvases = []
-print("Preprocessing gif, this may take a moment depending on the size of the gif...")
-for frame_index in range(0, num_frames):
-    gif.seek(frame_index)
-    # must copy the frame out of the gif, since thumbnail() modifies the image in-place
-    frame = gif.copy()
-    frame.thumbnail((matrix.width, matrix.height), Image.ANTIALIAS)
-    canvas = matrix.CreateFrameCanvas()
-    canvas.SetImage(frame.convert("RGB"))
-    canvases.append(canvas)
-# Close the gif file to save memory now that we have copied out all of the frames
-gif.close()
 
-print("Completed Preprocessing, displaying gif")
+
+# ... (previous code remains the same)
 
 try:
     print("Press CTRL-C to stop.")
+    gif = get_pokemon()
+    if gif is None:
+        sys.exit(1)  # Exit the script if there's an issue fetching Pokémon data
+    
+    gif.seek(0)
+    canvases = []
+    # loop through the gif and slow it down 3x, move to the next gif after 10 seconds
+    for frame_index in range(0, gif.n_frames * 3):
+        matrix.SwapOnVSync(canvases[frame_index % gif.n_frames])
+        time.sleep(1 / 10)
+        if frame_index % gif.n_frames == 0:
+            
+            canvases = []
+            print("Preprocessing gif, this may take a moment depending on the size of the gif...")
+            for frame_index in range(0, gif.n_frames):
+                gif.seek(frame_index)
+                # must copy the frame out of the gif, since thumbnail() modifies the image in-place
+                frame = gif.copy()
+                frame.thumbnail((matrix.width, matrix.height), Image.ANTIALIAS)
+                canvas = matrix.CreateFrameCanvas()
+                canvas.SetImage(frame.convert("RGB"))
+                canvases.append(canvas)
+            # Close the gif file to save memory now that we have copied out all of the frames
+            gif.close()
+            print("Completed Preprocessing, displaying gif")
 
-    # Infinitely loop through the gif
-    cur_frame = 0
-    while(True):
-        matrix.SwapOnVSync(canvases[cur_frame])
-        if cur_frame == num_frames - 1:
-            cur_frame = 0
-        else:
-            cur_frame += 1
 except KeyboardInterrupt:
     sys.exit(0)
+
