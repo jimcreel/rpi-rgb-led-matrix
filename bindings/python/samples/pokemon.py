@@ -24,22 +24,17 @@ def get_pokemon():
         pokemon_name = data["name"].capitalize()
         shiny_chance = random.randint(1, 100)
         female_chance = random.randint(1, 100)
-        path = './showdown'
+        path = './showdown/'
         if shiny_chance <= 25 and female_chance >= 50:
-            path += '/shiny/female/'
+            path += 'shiny/female/'
         elif shiny_chance <= 25:
-            path += '/shiny/'
+            path += 'shiny/'
         elif female_chance >= 50:
-            path += '/female/'
-        else:
-            path += '/'
+            path += 'female/'
         path += f'{random_pokemon}.gif'
         print(path)
         if os.path.exists(path):
-            print(path)
-            image = Image.open(path)
-            if image is not None:
-                return image
+            return path
         else:
             print(f"Failed to fetch Pokémon data. Status code: {response.status_code}")
             get_pokemon()
@@ -60,12 +55,12 @@ options.hardware_mapping = 'regular'  # If you have an Adafruit HAT: 'adafruit-h
 matrix = RGBMatrix(options = options)
 
 
-
-# ... (previous code remains the same)
-
 try:
     print("Press CTRL-C to stop.")
-    gif = get_pokemon()
+    gif_path = get_pokemon()
+    print(gif_path)
+    gif=Image.open('./showdown/858.gif')
+    print(gif.n_frames)
     if gif is None:
         sys.exit(1)  # Exit the script if there's an issue fetching Pokémon data
     
@@ -83,7 +78,7 @@ try:
                 gif.seek(frame_index)
                 # must copy the frame out of the gif, since thumbnail() modifies the image in-place
                 frame = gif.copy()
-                frame.thumbnail((matrix.width, matrix.height), Image.ANTIALIAS)
+                frame.thumbnail((matrix.width, matrix.height), Image.LANCZOS)
                 canvas = matrix.CreateFrameCanvas()
                 canvas.SetImage(frame.convert("RGB"))
                 canvases.append(canvas)

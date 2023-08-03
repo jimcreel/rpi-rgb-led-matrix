@@ -22,51 +22,76 @@ def get_pokemon():
     else:
         print(f"Failed to fetch Pokémon data. Status code: {response.status_code}")
         return None
-image_file = get_pokemon()
-gif = Image.open(image_file)
 
-try:
-    num_frames = gif.n_frames
-except Exception:
-    sys.exit("provided image is not a gif")
+def process_gif(gif):
+    try: 
+        num_frames = gif.n_frames
+    except Exception:
+        sys.exit("provided image is not a gif")
+
+    # Configuration for the matrix
+    options = RGBMatrixOptions()
+    options.rows = 128
+    options.cols = 128
+    options.chain_length = 1
+    options.parallel = 1
+    options.hardware_mapping = 'regular'  # If you have an Adafruit HAT: 'adafruit-hat'
+
+    matrix = RGBMatrix(options = options)
+
+    # Preprocess the gifs frames into canvases to improve playback performance
+    canvases = []
+    print("Preprocessing gif, this may take a moment depending on the size of the gif...")
+    gif.seek(0)
+    for frame_index in range(0, num_frames):
+        gif.seek(frame_index)
+        # must copy the frame out of the gif, since thumbnail() modifies the image in-place
+        frame = gif.copy()
+        frame.thumbnail((matrix.width, matrix.height), Image.ANTIALIAS)
+        canvas = matrix.CreateFrameCanvas()
+        canvas.SetImage(frame.convert("RGB"))
+        canvases.append(canvas)
+    # Close the gif file to save memory now that we have copied out all of the frames
+    gif.close()
+
+    print("Completed Preprocessing, displaying gif")
+    # Preprocess the gifs frames into canvases to improve playback performance
+    display_gif(canvases, matrix, num_frames)
 
 
-# Configuration for the matrix
-options = RGBMatrixOptions()
-options.rows = 64
-options.cols = 128
-options.chain_length = 1
-options.parallel = 1
-options.hardware_mapping = 'regular'  # If you have an Adafruit HAT: 'adafruit-hat'
-
-matrix = RGBMatrix(options = options)
-
-# Preprocess the gifs frames into canvases to improve playback performance
-canvases = []
-print("Preprocessing gif, this may take a moment depending on the size of the gif...")
-for frame_index in range(0, num_frames):
-    gif.seek(frame_index)
-    # must copy the frame out of the gif, since thumbnail() modifies the image in-place
-    frame = gif.copy()
-    frame.thumbnail((matrix.width, matrix.height), Image.ANTIALIAS)
-    canvas = matrix.CreateFrameCanvas()
-    canvas.SetImage(frame.convert("RGB"))
-    canvases.append(canvas)
-# Close the gif file to save memory now that we have copied out all of the frames
-gif.close()
-
-print("Completed Preprocessing, displaying gif")
-
-try:
-    print("Press CTRL-C to stop.")
-
-    # Infinitely loop through the gif
+# Modify the original display_gif function
+def display_gif(canvases, matrix, num_frames):
     cur_frame = 0
-    while(True):
+    counter = 1
+    frame_rate = 0
+
+    while(counter <= 3):
+        # Swap the canvas onto the matrix display
         matrix.SwapOnVSync(canvases[cur_frame])
+
         if cur_frame == num_frames - 1:
             cur_frame = 0
+            counter += 1
         else:
-            cur_frame += 1
-except KeyboardInterrupt:
-    sys.exit(0)
+            if frame_rate >= 0:
+                cur_frame += 1
+            else:
+                frame_rate += 1
+
+    # Perform the fade out effect instead of clearing
+    matrix.Clear()
+    __main__()
+
+
+
+def __main__():
+    gif_path = get_pokemon()
+    print(gif_path)
+    gif=Image.open(gif_path)
+    gif.seek(0)
+    print(gif.n_frames)
+    if gif is None:
+        sys.exit(1)  # Exit the script if there's an issue fetching Pokémon data
+    process_gif(gif)
+
+__main__()
