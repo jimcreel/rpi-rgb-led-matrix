@@ -8,6 +8,15 @@ import urllib.request
 from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
 from PIL import Image
 
+# Configuration for the matrix
+options = RGBMatrixOptions()
+options.rows = 128
+options.cols = 128
+options.chain_length = 1
+options.parallel = 1
+options.hardware_mapping = 'regular'  # If you have an Adafruit HAT: 'adafruit-hat'
+
+matrix = RGBMatrix(options = options)
 
 def get_pokemon():
     random_pokemon = random.randint(1, 898)  # There are 898 Pokémon in total
@@ -29,16 +38,7 @@ def process_gif(gif):
     except Exception:
         sys.exit("provided image is not a gif")
 
-    # Configuration for the matrix
-    options = RGBMatrixOptions()
-    options.rows = 128
-    options.cols = 128
-    options.chain_length = 1
-    options.parallel = 1
-    options.hardware_mapping = 'regular'  # If you have an Adafruit HAT: 'adafruit-hat'
-
-    matrix = RGBMatrix(options = options)
-
+    
     # Preprocess the gifs frames into canvases to improve playback performance
     canvases = []
     print("Preprocessing gif, this may take a moment depending on the size of the gif...")
@@ -52,6 +52,26 @@ def process_gif(gif):
         canvas.SetImage(frame.convert("RGB"))
         canvases.append(canvas)
     # Close the gif file to save memory now that we have copied out all of the frames
+    images = []
+    durations = []
+    for i in range(gif.n_frames):
+        gif.seek(i)
+        gif.convert('RGBA')
+        gif_temp = Image.new('RGBA',gif.size,(0,0,0,0))
+        gif_temp.paste(gif,(0,0))
+        images.append(gif_temp)
+        durations.append(gif.info['duration'])
+    images[0].save(
+        'test-out.gif', 
+        interlace=True,
+        save_all=True,
+        append_images=images[1:],
+        loop=0,
+        duration=durations,
+        disposal=2,
+        background = None,
+        optimize=False
+    )
     gif.close()
 
     print("Completed Preprocessing, displaying gif")
@@ -79,7 +99,6 @@ def display_gif(canvases, matrix, num_frames):
                 frame_rate += 1
 
     # Perform the fade out effect instead of clearing
-    matrix.Clear()
     __main__()
 
 
